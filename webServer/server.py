@@ -4,7 +4,7 @@ import os
 app = Flask(__name__)
 
 @app.route("/")
-def hello():
+def myhome():
   return render_template('./index.html')
 
 @app.route("/blog")
@@ -20,6 +20,7 @@ def blog2():
 def favicon():
     return send_from_directory(os.path.join(app.root_path, 'static'),
                                'flavicon.ico')
+
 
 if __name__ == "__main__":
   app.run()
