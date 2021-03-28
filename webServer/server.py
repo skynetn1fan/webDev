@@ -1,5 +1,8 @@
-from flask import Flask, render_template, send_from_directory
+from flask import Flask, render_template, send_from_directory, request, redirect
 import os
+import secrets
+import csv
+
 
 app = Flask(__name__)
 
@@ -7,19 +10,44 @@ app = Flask(__name__)
 def myhome():
   return render_template('./index.html')
 
-@app.route("/blog")
-def blog():
-  return "These are my thoughts on blogs!"
-
-@app.route("/blog/2020/CV")
-def blog2():
-  return "These are my computer vision apps!"
+@app.route("/<string:page_name>")
+def html_page(page_name):
+  return render_template(page_name)
 
 # endpoint if we should need it
-@app.route('/flavicon.ico')
+@app.route('/static/assets/flavicon.ico')
 def favicon():
-    return send_from_directory(os.path.join(app.root_path, 'static'),
+    return send_from_directory(os.path.join(app.root_path, 'static/assets'),
                                'flavicon.ico')
+
+def write_to_file(data):
+    with open('database.txt', mode='a') as f:
+        email = data['email']
+        subject = data['subject']
+        message = data['message']
+        f.write(f'\n {email}, {subject}, {message}')
+
+
+def write_to_db(data):
+    with open('database.csv', mode='a', newline='') as f:
+        email = data['email']
+        subject = data['subject']
+        message = data['message']
+        csv_writer = csv.writer(f, delimiter = ',', quotechar = '"', quoting = csv.QUOTE_MINIMAL)
+        csv_writer.writerow([email, subject, message])
+
+@app.route('/submit_form', methods=['GET', 'POST'])
+def submit_form():
+    if request.method == 'POST':
+        try:
+            data = request.form.to_dict()
+            write_to_db(data)
+            return redirect('thankyou.html')
+        except:
+            return 'Did not save to database'
+    else:
+        return 'Something went wrong with your message, please try again.'
+
 
 
 if __name__ == "__main__":
