@@ -1,10 +1,13 @@
 from flask import Flask, render_template, send_from_directory, request, redirect
+from flask_mail import Mail, Message
 import os
 import secrets
 import csv
 
 
 app = Flask(__name__)
+app.config.from_object('config.Config')
+mail = Mail(app)
 
 @app.route("/")
 def myhome():
@@ -42,6 +45,10 @@ def submit_form():
         try:
             data = request.form.to_dict()
             write_to_db(data)
+            msg = Message('CONTACT FROM WEBSITE ',
+                          recipients=["hanot.jonas@gmail.com"])
+            msg.body = data['message']
+            mail.send(msg)
             return redirect('thankyou.html')
         except:
             return 'Did not save to database'
